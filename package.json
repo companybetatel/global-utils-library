@@ -1,16 +1,13 @@
 {
   "name": "global-utils-library",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
+  "description": "A shared library containing common services and constants used across multiple projects.",
+  "main": "src/services.js",
+  "types": "index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo No build step needed"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "typescript": "^5.7.2"
-  }
+  "keywords": ["shared", "services", "utils", "typescript", "javascript"],
+  "author": "Your Name",
+  "license": "ISC"
 }
