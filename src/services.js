@@ -1,5 +1,3 @@
-// src/services.js
-
 const ourServices = {
     'flash-call': {
         service_id: 'flash-call',
@@ -15,8 +13,5 @@ const ourServices = {
     }
 };
 
-// CommonJS export (for require)
-module.exports = ourServices;
-
-// ESM export (for import)
-export default ourServices;
+module.exports = ourServices; // CommonJS export
+exports.default = ourServices; // ES Module default export
