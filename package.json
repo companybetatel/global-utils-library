@@ -2,7 +2,7 @@
   "name": "global-utils-library",
   "version": "1.0.0",
   "description": "A shared library containing common services and constants used across multiple projects.",
-  "main": "src/services.js",
+  "main": "src/index.js",
   "scripts": {
     "build": "echo No build step needed"
   },
