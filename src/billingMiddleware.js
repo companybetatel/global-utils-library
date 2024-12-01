@@ -9,6 +9,15 @@ const fetch = require('node-fetch');
 const ourServices = require('./services');
 
 class BillingMiddleware {
+    /**
+     * Billing Middleware class.
+     *
+     * @class BillingMiddleware
+     * @param {string} apiUrl - The URL of the API to fetch user information.
+     * @param {string} billingUrl - The URL of the billing system to retrieve user balances.
+     * @param {string} billingApiKey - API Key used for authentication when fetching user details.
+     */
+
     constructor(apiUrl, billingUrl, billingApiKey) {
         this.apiUrl = apiUrl;
         this.billingUrl = billingUrl;
