@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "A shared library containing common services and constants used across multiple projects.",
   "main": "src/services.js",
-  "type": "module",
   "scripts": {
     "build": "echo No build step needed"
   },

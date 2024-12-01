@@ -1,5 +1,6 @@
 // src/services.js
-export const ourServices = {
+
+const ourServices = {
     'flash-call': {
         service_id: 'flash-call',
         unit_price: 0.05
@@ -13,3 +14,9 @@ export const ourServices = {
         unit_price: 0.04
     }
 };
+
+// CommonJS export (for require)
+module.exports = ourServices;
+
+// ESM export (for import)
+export default ourServices;
