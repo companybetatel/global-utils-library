@@ -1,6 +1,12 @@
-const ourServices = require('./services');
+/**
+ * Billing Middleware *  to verify billing-related information before proceeding with the request.
+ *
+ * @param {string} apiUrl - The URL of the API to fetch user information.
+ * @param {string} billingUrl - The URL of the billing system to retrieve user balances.
+ * @param {string} billingApiKey - API Key used for authentication when fetching user details.
+ */
 const fetch = require('node-fetch');
-
+const ourServices = require('./services');
 
 class BillingMiddleware {
     constructor(apiUrl, billingUrl, billingApiKey) {
@@ -9,6 +15,11 @@ class BillingMiddleware {
         this.billingApiKey = billingApiKey;
     }
 
+    /**
+     * Verify Billing Middleware Function
+     * @param {string} serviceId - The ID of the service for which the billing is being verified.
+     * @returns {function} Middleware function to validate billing.
+     */
     verifyBilling(serviceId) {
         return async (req, res, next) => {
             try {
@@ -19,14 +30,14 @@ class BillingMiddleware {
                 }
 
                 // Step 2: Retrieve or extract userId
-                let userId = req.headers['userId'];
+                let userId = req.headers['user-id'];
                 if (!userId) {
                     const user = await this.getUserByApiKey(apiKey);
                     if (!user || !user.userId) {
                         return res.status(401).send('Unauthorized: Invalid API Key');
                     }
                     userId = user.userId.toString();
-                    req.headers['userId'] = userId;
+                    req.headers['user-id'] = userId;
                 }
 
                 // Step 3: Validate Service ID
@@ -53,12 +64,17 @@ class BillingMiddleware {
         };
     }
 
+    /**
+     * Retrieve user details by API key.
+     * @param {string} apiKey - The API key used to fetch user details.
+     * @returns {Promise<object>} User information.
+     */
     async getUserByApiKey(apiKey) {
-        const response = await fetch(`${this.apiUrl}/api-key/getUserByHashKey`,{
-            method:"GET",
+        const response = await fetch(`${this.apiUrl}/api-key/getUserByHashKey`, {
+            method: 'GET',
             headers: {
-                'x-api-key': this.billingApiKey
-            }
+                'x-api-key': this.billingApiKey,
+            },
         });
         if (!response.ok) {
             throw new Error('Failed to fetch user by API key');
@@ -66,10 +82,20 @@ class BillingMiddleware {
         return response.json();
     }
 
+    /**
+     * Check if the service ID is valid.
+     * @param {string} serviceId - The service ID to validate.
+     * @returns {boolean} Whether the service ID is valid or not.
+     */
     isValidServiceId(serviceId) {
         return !!serviceId && !!ourServices[serviceId];
     }
 
+    /**
+     * Retrieve user balance.
+     * @param {string} userId - The ID of the user.
+     * @returns {Promise<number>} The balance of the user.
+     */
     async getUserBalance(userId) {
         const response = await fetch(`${this.billingUrl}/billing/${userId}/balance`);
         if (!response.ok) {
@@ -79,7 +105,6 @@ class BillingMiddleware {
         return data.balance;
     }
 }
-
 
 module.exports = BillingMiddleware;
 
