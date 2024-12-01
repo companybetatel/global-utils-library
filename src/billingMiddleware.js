@@ -15,7 +15,7 @@ class BillingMiddleware {
                 // Step 1: Validate API Key
                 const apiKey = req.headers['x-api-key'];
                 if (!apiKey) {
-                   return  res.status(401).send('Unauthorized: Missing API Key');
+                    return res.status(401).send('Unauthorized: Missing API Key');
                 }
 
                 // Step 2: Retrieve or extract userId
@@ -23,7 +23,7 @@ class BillingMiddleware {
                 if (!userId) {
                     const user = await this.getUserByApiKey(apiKey);
                     if (!user || !user.userId) {
-                       return  res.status(401).send('Unauthorized: Invalid API Key');
+                        return res.status(401).send('Unauthorized: Invalid API Key');
                     }
                     userId = user.userId.toString();
                     req.headers['userId'] = userId;
@@ -31,7 +31,7 @@ class BillingMiddleware {
 
                 // Step 3: Validate Service ID
                 if (!this.isValidServiceId(serviceId)) {
-                   return  res.status(400).send('Invalid Service ID');
+                    return res.status(400).send('Invalid Service ID');
                 }
 
                 // Step 4: Retrieve user balance
@@ -39,12 +39,16 @@ class BillingMiddleware {
 
                 // Step 5: Check if user has enough balance for the service
                 if (userBalance < ourServices[serviceId].unit_price) {
-                   return res.status(402).send('Insufficient Balance');
+                    return res.status(402).send('Insufficient Balance');
                 }
 
                 next();
             } catch (error) {
-               return   res.status(500).send('Internal Server Error');
+                console.error('Error occurred in verifyBilling:', error);
+                res.status(500).send({
+                    message: 'Internal Server Error',
+                    error: error.message,
+                });
             }
         };
     }
