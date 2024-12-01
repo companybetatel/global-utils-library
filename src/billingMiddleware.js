@@ -1,4 +1,4 @@
-import ourServices from "./services";
+const ourServices = require('./services');
 
 class BillingMiddleware {
     constructor(apiUrl, billingUrl) {
