@@ -13,5 +13,8 @@ const ourServices = {
     }
 };
 
-module.exports = ourServices; // CommonJS export
-exports.default = ourServices; // ES Module default export
+// CommonJS export
+module.exports = ourServices;
+
+// Compatibility with ES Modules
+module.exports.default = ourServices;
