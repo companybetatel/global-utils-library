@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "description": "A shared library containing common services and constants used across multiple projects.",
   "main": "src/services.js",
-  "types": "index.d.ts",
   "scripts": {
     "build": "echo No build step needed"
   },
-  "keywords": ["shared", "services", "utils", "typescript", "javascript"],
+  "keywords": [
+    "shared",
+    "services",
+    "utils",
+    "javascript"
+  ],
   "author": "Your Name",
   "license": "ISC"
 }

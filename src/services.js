@@ -1,4 +1,4 @@
-export const ourServices = {
+const ourServices = {
     'flash-call': {
         service_id: 'flash-call',
         unit_price: 0.05
@@ -13,3 +13,4 @@ export const ourServices = {
     }
 };
 
+module.exports = ourServices;
