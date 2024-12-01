@@ -73,7 +73,7 @@ class BillingMiddleware {
         const response = await fetch(`${this.apiUrl}/api-key/getUserByHashKey`, {
             method: 'GET',
             headers: {
-                'x-api-key': this.billingApiKey,
+                'x-api-key': apiKey,
             },
         });
         if (!response.ok) {
@@ -97,7 +97,12 @@ class BillingMiddleware {
      * @returns {Promise<number>} The balance of the user.
      */
     async getUserBalance(userId) {
-        const response = await fetch(`${this.billingUrl}/billing/${userId}/balance`);
+        const response = await fetch(`${this.billingUrl}/billing/${userId}/balance`,{
+            method: 'GET',
+            headers: {
+                'x-api-key': this.billingApiKey,
+            },
+        });
         if (!response.ok) {
             throw new Error('Failed to fetch user balance');
         }
