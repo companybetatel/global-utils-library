@@ -10,6 +10,10 @@ const ourServices = {
     'text-to-speech': {
         service_id: 'text-to-speech',
         unit_price: 0.04
+    },
+    'sms': {
+        service_id: 'sms',
+        unit_price: 0.04
     }
 };
 

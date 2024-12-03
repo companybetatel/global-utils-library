@@ -8,11 +8,11 @@
 const fetch = require('node-fetch');
 const ourServices = require('./services');
 
-class BillingMiddleware {
+class Billing {
     /**
-     * Billing Middleware class.
+     * Billing class.
      *
-     * @class BillingMiddleware
+     * @class Billing
      * @param {string} apiUrl - The URL of the API to fetch user information.
      * @param {string} billingUrl - The URL of the billing system to retrieve user balances.
      * @param {string} billingApiKey - API Key used for authentication when fetching user details.
@@ -109,14 +109,36 @@ class BillingMiddleware {
         const response = await fetch(`${this.billingUrl}/billing/${userId}/balance`,{
             method: 'GET',
             headers: {
+                'Content-Type': 'application/json',
                 'x-api-key': this.billingApiKey,
             },
         });
-        if (!response.ok) {
+        if (!response.ok)
             throw new Error('Failed to fetch user balance');
-        }
+
         const data = await response.json();
         return data.balance;
+    }
+
+
+    /**
+     * @Description Add record to billing system (DEBIT/CREDIT)
+     * @param {Object} payload - Record data
+     * @returns {Promise<Object>} Record data
+     */
+    async addRecord(payload = {}) {
+        const response = await fetch(`${this.billingUrl}/billing/record`,{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': this.billingApiKey,
+            },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            throw new Error('Failed to add record');
+        }
+        return await response.json();
     }
 }
 
