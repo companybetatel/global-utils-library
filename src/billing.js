@@ -20,7 +20,7 @@ class Billing {
 
     constructor(apiUrl, billingUrl, billingApiKey) {
         this.apiUrl = apiUrl;
-        this.billingUrl = billingUrl;
+        this.billingApiUrl = billingUrl;
         this.billingApiKey = billingApiKey;
     }
 
@@ -106,7 +106,20 @@ class Billing {
      * @returns {Promise<number>} The balance of the user.
      */
     async getUserBalance(userId) {
-        const response = await fetch(`${this.billingUrl}/billing/${userId}/balance`,{
+
+        // Step 1: Validate API Key
+        if (!this.billingApiKey)
+            throw new Error('Unauthorized: Missing API Key');
+
+        // Step 2: Retrieve or extract userId
+        if (!userId) {
+            const user = await this.getUserByApiKey(this.billingApiKey);
+            if (!user || !user.userId)
+                throw new Error('Unauthorized: Invalid API Key');
+            userId = user.userId;
+        }
+
+        const response = await fetch(`${this.billingApiUrl}/billing/${userId}/balance`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -120,24 +133,51 @@ class Billing {
         return data.balance;
     }
 
-
     /**
      * @Description Add record to billing system (DEBIT/CREDIT)
      * @param {Object} payload - Record data
      * @returns {Promise<Object>} Record data
      */
     async addRecord(payload = {}) {
-        const response = await fetch(`${this.billingUrl}/billing/record`,{
+        let {quantity = 1, description, userId, serviceId, type} = payload;
+
+        // Step 1: Validate API Key
+        if (!this.billingApiKey)
+            throw new Error('Unauthorized: Missing API Key');
+
+        // Step 2: Retrieve or extract userId
+        if (!userId) {
+            const user = await this.getUserByApiKey(this.billingApiKey);
+            if (!user || !user.userId)
+                throw new Error('Unauthorized: Invalid API Key');
+            userId = user.userId;
+        }
+
+        // Step 3: Validate Service ID
+        if (!this.isValidServiceId(serviceId))
+            throw new Error('Invalid Service ID');
+
+        const unitPrice = ourServices[serviceId].unit_price;
+
+        const response = await fetch(`${this.billingApiUrl}/billing/record`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'x-api-key': this.billingApiKey,
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                user_id: userId,
+                service_id: serviceId,
+                quantity,
+                description,
+                type,
+                unit_price: unitPrice
+            })
         });
-        if (!response.ok) {
+
+        if (!response.ok)
             throw new Error('Failed to add record');
-        }
+
         return await response.json();
     }
 }
