@@ -142,6 +142,6 @@ class Billing {
     }
 }
 
-module.exports = BillingMiddleware;
+module.exports = Billing;
 
-module.exports.default = BillingMiddleware;
+module.exports.default = Billing;
