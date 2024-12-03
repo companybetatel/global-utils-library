@@ -1,9 +1,9 @@
 // Import BillingMiddleware and ourServices
-const BillingMiddleware = require('./billingMiddleware');
+const Billing = require('./billing');
 const ourServices = require('./services');
 
 // Export both BillingMiddleware and ourServices for easy access
-module.exports = { BillingMiddleware, ourServices };
+module.exports = { Billing, ourServices };
 
 // Compatibility with ES Modules
-module.exports.default = { BillingMiddleware, ourServices };
+module.exports.default = { Billing, ourServices };
