@@ -29,7 +29,7 @@ class Billing {
      * @param {string} serviceId - The ID of the service for which the billing is being verified.
      * @returns {function} Middleware function to validate billing.
      */
-    verifyBilling(serviceId) {
+    verify(serviceId) {
         return async (req, res, next) => {
             try {
                 // Step 1: Validate API Key
