@@ -9,8 +9,14 @@ interface RecordPayload {
   type: string;
 }
 
-interface User {
+interface ResponseGetApiKeyByHashedKey {
   userId: string;
+}
+
+interface ResponseGetUserBalance {
+    user_id: string;
+    balance: number;
+    currency: string;
 }
 
 export class Billing {
@@ -34,7 +40,7 @@ export class Billing {
 
         let userId = req.headers["user-id"];
         if (!userId) {
-          const user = await this.getUserByApiKey(apiKey);
+          const user = await this.getApiKeyByHashedKey(apiKey);
           if (!user?.userId) {
             return res.status(401).send("Unauthorized: Invalid API Key");
           }
@@ -63,8 +69,8 @@ export class Billing {
     };
   }
 
-  async getUserByApiKey(apiKey: string): Promise<User> {
-    const response = await fetch(`${this.apiUrl}/api-key/getUserByHashKey`, {
+  async getApiKeyByHashedKey(apiKey: string): Promise<ResponseGetApiKeyByHashedKey> {
+    const response = await fetch(`${this.apiUrl}/api-key/get-api-key-by-hashed-key`, {
       method: "GET",
       headers: {
         "x-api-key": apiKey,
@@ -73,7 +79,7 @@ export class Billing {
     if (!response.ok) {
       throw new Error("Failed to fetch user by API key");
     }
-    return response.json() as Promise<User>;
+    return response.json() as Promise<ResponseGetApiKeyByHashedKey>;
   }
 
   isValidServiceId(serviceId: string): boolean {
@@ -99,9 +105,8 @@ export class Billing {
       throw new Error("Failed to fetch user balance");
     }
 
-    const data = await response.json();
-    // @ts-expect-error: balance is not defined
-    return data.balance;
+    const data = await response.json() as ResponseGetUserBalance;
+    return data!.balance;
   }
 
   async addRecord(payload: RecordPayload): Promise<any> {
@@ -113,7 +118,7 @@ export class Billing {
 
     let validatedUserId = userId;
     if (!validatedUserId) {
-      const user = await this.getUserByApiKey(this.billingApiKey);
+      const user = await this.getApiKeyByHashedKey(this.billingApiKey);
       if (!user?.userId) {
         throw new Error("Unauthorized: Invalid API Key");
       }
