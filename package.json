@@ -1,20 +1,21 @@
 {
-  "name": "global-utils-library",
-  "version": "1.0.0",
-  "description": "A shared library containing common services and constants used across multiple projects.",
-  "main": "src/index.js",
+  "name": "@betatel/utils",
+  "version": "0.0.4",
+  "description": "An Utils library for Betatel services",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "homepage": "https://betatel.com",
   "scripts": {
-    "build": "echo No build step needed"
+    "build": "tsup"
   },
-  "keywords": [
-    "shared",
-    "services",
-    "utils",
-    "javascript"
-  ],
-  "author": "Your Name",
+  "author": "Betatel LTD",
   "license": "ISC",
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
   "dependencies": {
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^3.3.2"
   }
 }

@@ -1,27 +1,5 @@
-# Node modules
-node_modules/
+/dist
+/node_modules
 
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment Variables
 .env
-
-# Dist and Build directories (ako imate build proces)
-dist/
-build/
-
-# TypeScript output (ukoliko ste imali TypeScript fajlove)
-*.tsbuildinfo
-
-# Editor-specific directories
-.vscode/
-.idea/
-
-# OS-specific files
 .DS_Store
-Thumbs.db
