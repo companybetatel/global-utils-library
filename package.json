@@ -1,11 +1,10 @@
 {
   "name": "@betatel/utils",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "An Utils library for Betatel services",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "type": "module",
   "homepage": "https://betatel.com",
   "scripts": {
     "build": "tsup"
@@ -13,10 +12,11 @@
   "author": "Betatel LTD",
   "license": "ISC",
   "devDependencies": {
+    "@types/node-fetch": "^2.6.12",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^2.6.1"
   }
 }
