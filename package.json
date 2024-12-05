@@ -1,10 +1,11 @@
 {
   "name": "@betatel/utils",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "description": "An Utils library for Betatel services",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "type": "module",
   "homepage": "https://betatel.com",
   "scripts": {
     "build": "tsup"
