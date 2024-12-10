@@ -9,7 +9,7 @@ interface RecordPayload {
   type: string;
 }
 
-interface ResponseGetApiKeyByHashedKey {
+interface ResponseGetApiKeyByPlainApiKey {
   userId: string;
 }
 
@@ -40,7 +40,7 @@ export class Billing {
 
         let userId = req.headers["user-id"];
         if (!userId) {
-          const user = await this.getApiKeyByHashedKey(apiKey);
+          const user = await this.getApiKeyByPlainApiKey(apiKey);
           if (!user?.userId) {
             return res.status(401).send("Unauthorized: Invalid API Key");
           }
@@ -69,8 +69,8 @@ export class Billing {
     };
   }
 
-  async getApiKeyByHashedKey(apiKey: string): Promise<ResponseGetApiKeyByHashedKey> {
-    const response = await fetch(`${this.apiUrl}/api-key/get-api-key-by-hashed-key`, {
+  async getApiKeyByPlainApiKey(apiKey: string): Promise<ResponseGetApiKeyByPlainApiKey> {
+    const response = await fetch(`${this.apiUrl}/api-key/get-api-key-by-plain-key`, {
       method: "GET",
       headers: {
         "x-api-key": apiKey,
@@ -79,7 +79,7 @@ export class Billing {
     if (!response.ok) {
       throw new Error("Failed to fetch user by API key");
     }
-    return response.json() as Promise<ResponseGetApiKeyByHashedKey>;
+    return response.json() as Promise<ResponseGetApiKeyByPlainApiKey>;
   }
 
   isValidServiceId(serviceId: string): boolean {
@@ -118,7 +118,7 @@ export class Billing {
 
     let validatedUserId = userId;
     if (!validatedUserId) {
-      const user = await this.getApiKeyByHashedKey(this.billingApiKey);
+      const user = await this.getApiKeyByPlainApiKey(this.billingApiKey);
       if (!user?.userId) {
         throw new Error("Unauthorized: Invalid API Key");
       }
