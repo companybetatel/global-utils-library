@@ -38,14 +38,14 @@ export class Billing {
           return res.status(401).send("Unauthorized: Missing API Key");
         }
 
-        let userId = req.headers["user-id"];
+        let userId = req.headers["x-user-id"];
         if (!userId) {
           const user = await this.getApiKeyByPlainApiKey(apiKey);
           if (!user?.userId) {
             return res.status(401).send("Unauthorized: Invalid API Key");
           }
           userId = user.userId.toString();
-          req.headers["user-id"] = userId;
+          req.headers["x-user-id"] = userId;
         }
 
         if (!this.isValidServiceId(serviceId)) {
