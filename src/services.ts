@@ -10,6 +10,10 @@ export const ourServices: Record<
     service_id: "otp-call",
     unit_price: 0.03,
   },
+  "commercial-call": {
+    service_id: "commercial-call",
+    unit_price: 0.03,
+  },
   "text-to-speech": {
     service_id: "text-to-speech",
     unit_price: 0.04,
