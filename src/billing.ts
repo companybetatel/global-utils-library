@@ -74,8 +74,10 @@ export class Billing {
             headers: {"x-api-key": apiKey}
         });
 
-        if (!response.ok)
-            throw new Error(AppMessage.ERROR_GET_API_KEY);
+        if (!response.ok){
+            let data =  await response.json();
+            throw new Error(data.error || AppMessage.ERROR_GET_API_KEY);
+        }
 
         return response.json() as Promise<ResponseApiKey>;
     }
@@ -103,8 +105,11 @@ export class Billing {
                 }
             }
         );
-        if (!response.ok)
-            throw new Error(AppMessage.ERROR_GET_UNIT_PRICE);
+
+        if (!response.ok){
+            let data =  await response.json();
+            throw new Error(data.error || AppMessage.ERROR_GET_UNIT_PRICE);
+        }
 
         return await response.json();
     }
@@ -132,8 +137,10 @@ export class Billing {
             }
         );
 
-        if (!response.ok)
-            throw new Error(AppMessage.ERROR_GET_USER_BALANCE);
+        if (!response.ok){
+            let data =  await response.json();
+            throw new Error(data.error || AppMessage.ERROR_GET_USER_BALANCE);
+        }
 
         const data = await response.json() as ResponseBalance;
         return data!.balance;
