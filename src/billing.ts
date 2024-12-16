@@ -42,7 +42,7 @@ export class Billing {
                 const {callee} = req[req.method === 'GET' ? 'query' : 'body'];
 
                 /**Get unit price**/
-                const unitPrice = await this.getUnitPrice(serviceId, callee);
+                const unitPrice = await this.getUnitPrice(serviceId, userId, callee);
                 if (!unitPrice)
                     return res.status(StatusCodeEnum.NOT_FOUND).send(AppMessage.ERROR_UNIT_PRICE_NOT_FOUND);
 
@@ -85,10 +85,11 @@ export class Billing {
     /**
      * @Description Get unit price for specific service
      * @param {string} serviceId - service identifier
+     * @param {string} userId - user identifier
      * @param {string|null|undefined} callee - callee identifier
      * @returns {Promise<number>}
      */
-    async getUnitPrice(serviceId: string, callee: string|null|undefined): Promise<number> {
+    async getUnitPrice(serviceId: string, userId:string, callee: string|null|undefined): Promise<number> {
         /**Check service id*/
         if (!serviceId)
             throw new Error(AppMessage.ERROR_MISSING_SERVICE_ID);
@@ -102,6 +103,7 @@ export class Billing {
                 headers: {
                     "Content-Type": "application/json",
                     "x-api-key": this.billingApiKey,
+                    "x-user-id": userId
                 }
             }
         );
@@ -133,6 +135,7 @@ export class Billing {
                 headers: {
                     "Content-Type": "application/json",
                     "x-api-key": this.billingApiKey,
+                    "x-user-id": userId
                 }
             }
         );
@@ -168,7 +171,7 @@ export class Billing {
         }
 
         /**Get unit price**/
-        const unitPrice = await this.getUnitPrice(serviceId, callee);
+        const unitPrice = await this.getUnitPrice(serviceId, validatedUserId, callee);
         if (!unitPrice)
             throw new Error(AppMessage.ERROR_UNIT_PRICE_NOT_FOUND);
 
@@ -178,6 +181,7 @@ export class Billing {
             headers: {
                 "Content-Type": "application/json",
                 "x-api-key": this.billingApiKey,
+                "x-user-id": validatedUserId
             },
             body: JSON.stringify({
                 user_id: validatedUserId,
