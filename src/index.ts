@@ -1,4 +1,1 @@
-import { Billing } from "./billing";
-import { ourServices } from "./services";
-
-export { Billing, ourServices };
+export {Billing} from "./billing";

@@ -1,158 +1,192 @@
 import fetch from "node-fetch";
-import ourServices from "./services";
-
-interface RecordPayload {
-  quantity?: number;
-  description?: string;
-  userId?: string;
-  serviceId: string;
-  type: string;
-}
-
-interface ResponseGetApiKeyByPlainApiKey {
-  userId: string;
-}
-
-interface ResponseGetUserBalance {
-    user_id: string;
-    balance: number;
-    currency: string;
-}
+import {RecordPayload, ResponseApiKey, ResponseBalance, StatusCodeEnum} from "./models";
+import {AppMessage, Endpoint} from "./constants";
 
 export class Billing {
-  private readonly apiUrl: string;
-  private readonly billingApiUrl: string;
-  private readonly billingApiKey: string;
+    private readonly apiUrl: string;
+    private readonly billingApiUrl: string;
+    private readonly billingApiKey: string;
 
-  constructor(apiUrl: string, billingUrl: string, billingApiKey: string) {
-    this.apiUrl = apiUrl;
-    this.billingApiUrl = billingUrl;
-    this.billingApiKey = billingApiKey;
-  }
+    constructor(apiUrl: string, billingUrl: string, billingApiKey: string) {
+        this.apiUrl = apiUrl;
+        this.billingApiUrl = billingUrl;
+        this.billingApiKey = billingApiKey;
+    }
 
-  verify(serviceId: string) {
-    return async (req: any, res: any, next: Function) => {
-      try {
-        const apiKey = req.headers["x-api-key"];
-        if (!apiKey) {
-          return res.status(401).send("Unauthorized: Missing API Key");
-        }
+    /**
+     * @Description Verify service - billing middleware
+     * @param {string} serviceId - service identifier
+     * @returns {Function}
+     */
+    verify(serviceId: string) {
+        return async (req: any, res: any, next: Function) => {
+            try {
 
-        let userId = req.headers["x-user-id"];
-        if (!userId) {
-          const user = await this.getApiKeyByPlainApiKey(apiKey);
-          if (!user?.userId) {
-            return res.status(401).send("Unauthorized: Invalid API Key");
-          }
-          userId = user.userId.toString();
-          req.headers["x-user-id"] = userId;
-        }
+                /**Check api key*/
+                const apiKey = req.headers["x-api-key"];
+                if (!apiKey)
+                    return res.status(StatusCodeEnum.UNAUTHORIZED).send(AppMessage.ERROR_MISSING_KEY);
 
-        if (!this.isValidServiceId(serviceId)) {
-          return res.status(400).send("Invalid Service ID");
-        }
+                /**Check user id*/
+                let userId = req.headers["x-user-id"];
+                if (!userId) {
+                    const user = await this.getApiKeyUser(apiKey);
+                    if (!user?.userId)
+                        return res.status(StatusCodeEnum.UNAUTHORIZED).send(AppMessage.ERROR_INVALID_KEY);
 
-        const userBalance = await this.getUserBalance(userId);
+                    userId = user.userId.toString();
+                    req.headers["x-user-id"] = userId;
+                }
 
-        if (userBalance < ourServices[serviceId].unit_price) {
-          return res.status(402).send("Insufficient Balance");
-        }
+                /**Get destination number*/
+                const {callee} = req[req.method === 'GET' ? 'query' : 'body'];
 
-        next();
-      } catch (error) {
-        console.error("Error occurred in verifyBilling:", error);
-        res.status(500).send({
-          message: "Internal Server Error",
-          error: (error as Error).message,
+                /**Get unit price**/
+                const unitPrice = await this.getUnitPrice(serviceId, callee);
+                if (!unitPrice)
+                    return res.status(StatusCodeEnum.NOT_FOUND).send(AppMessage.ERROR_UNIT_PRICE_NOT_FOUND);
+
+                /**Check balance*/
+                const userBalance = await this.getUserBalance(userId);
+
+                /**Insufficient balance*/
+                if (userBalance < unitPrice)
+                    return res.status(StatusCodeEnum.PAYMENT_REQUIRED).send(AppMessage.ERROR_INSUFFICIENT_FUNDS);
+
+                next();
+            } catch (error) {
+                res.status(StatusCodeEnum.INTERNAL_SERVER_ERROR).send({
+                    message: AppMessage.ERROR_INTERNAL_SERVER_ERROR,
+                    error: (error as Error).message,
+                });
+            }
+        };
+    }
+
+    /**
+     * @Description Get api key user
+     * @param {string} apiKey - plain api key
+     * @returns {Promise<ResponseApiKey>}
+     */
+    async getApiKeyUser(apiKey: string): Promise<ResponseApiKey> {
+        const response = await fetch(`${this.apiUrl}${Endpoint.API_KEY_USER}`, {
+            method: "GET",
+            headers: {"x-api-key": apiKey}
         });
-      }
-    };
-  }
 
-  async getApiKeyByPlainApiKey(apiKey: string): Promise<ResponseGetApiKeyByPlainApiKey> {
-    const response = await fetch(`${this.apiUrl}/api-key/get-api-key-by-plain-key`, {
-      method: "GET",
-      headers: {
-        "x-api-key": apiKey,
-      },
-    });
-    if (!response.ok) {
-      throw new Error("Failed to fetch user by API key");
-    }
-    return response.json() as Promise<ResponseGetApiKeyByPlainApiKey>;
-  }
+        if (!response.ok)
+            throw new Error(AppMessage.ERROR_GET_API_KEY);
 
-  isValidServiceId(serviceId: string): boolean {
-    return !!serviceId && !!ourServices[serviceId];
-  }
-
-  async getUserBalance(userId: string): Promise<number> {
-    if (!this.billingApiKey) {
-      throw new Error("Unauthorized: Missing API Key");
+        return response.json() as Promise<ResponseApiKey>;
     }
 
-    const response = await fetch(
-      `${this.billingApiUrl}/billing/${userId}/balance`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": this.billingApiKey,
-        },
-      }
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch user balance");
+    /**
+     * @Description Get unit price for specific service
+     * @param {string} serviceId - service identifier
+     * @param {string|null|undefined} callee - callee identifier
+     * @returns {Promise<number>}
+     */
+    async getUnitPrice(serviceId: string, callee: string|null|undefined): Promise<number> {
+        /**Check service id*/
+        if (!serviceId)
+            throw new Error(AppMessage.ERROR_MISSING_SERVICE_ID);
+
+        /**Get unit price from billing*/
+        const queryParams = callee ? `?${new URLSearchParams({callee})}` : '';
+        const response = await fetch(
+            `${this.billingApiUrl}${Endpoint.BALANCE.replace(":service_id", serviceId)}${queryParams}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": this.billingApiKey,
+                }
+            }
+        );
+        if (!response.ok)
+            throw new Error(AppMessage.ERROR_GET_UNIT_PRICE);
+
+        return await response.json();
     }
 
-    const data = await response.json() as ResponseGetUserBalance;
-    return data!.balance;
-  }
+    /**
+     * @Description Get user balance
+     * @param {string} userId - user identifier
+     * @returns {Promise<number>}
+     */
+    async getUserBalance(userId: string): Promise<number> {
 
-  async addRecord(payload: RecordPayload): Promise<any> {
-    const { quantity = 1, description, userId, serviceId, type } = payload;
+        /**Check api key*/
+        if (!this.billingApiKey)
+            throw new Error(AppMessage.ERROR_MISSING_KEY);
 
-    if (!this.billingApiKey) {
-      throw new Error("Unauthorized: Missing API Key");
+        /**Get user balance from billing*/
+        const response = await fetch(
+            `${this.billingApiUrl}${Endpoint.BALANCE.replace(":userId", userId)}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": this.billingApiKey,
+                }
+            }
+        );
+
+        if (!response.ok)
+            throw new Error(AppMessage.ERROR_GET_USER_BALANCE);
+
+        const data = await response.json() as ResponseBalance;
+        return data!.balance;
     }
 
-    let validatedUserId = userId;
-    if (!validatedUserId) {
-      const user = await this.getApiKeyByPlainApiKey(this.billingApiKey);
-      if (!user?.userId) {
-        throw new Error("Unauthorized: Invalid API Key");
-      }
-      validatedUserId = user.userId;
+    /**
+     * @Description Add billing record
+     * @param {RecordPayload} payload - record payload
+     * @returns {Promise<any>}
+     */
+    async addRecord(payload: RecordPayload): Promise<any> {
+        const {quantity = 1, description, userId, serviceId, callee, type} = payload;
+
+        /**Check api key*/
+        if (!this.billingApiKey)
+            throw new Error(AppMessage.ERROR_MISSING_KEY);
+
+        /**Check user id*/
+        let validatedUserId = userId;
+        if (!validatedUserId) {
+            const user = await this.getApiKeyUser(this.billingApiKey);
+            if (!user?.userId)
+                throw new Error(AppMessage.ERROR_INVALID_KEY);
+            validatedUserId = user.userId;
+        }
+
+        /**Get unit price**/
+        const unitPrice = await this.getUnitPrice(serviceId, callee);
+        if (!unitPrice)
+            throw new Error(AppMessage.ERROR_UNIT_PRICE_NOT_FOUND);
+
+        /**Add record*/
+        const response = await fetch(`${this.billingApiUrl}${Endpoint.RECORD}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-api-key": this.billingApiKey,
+            },
+            body: JSON.stringify({
+                user_id: validatedUserId,
+                service_id: serviceId,
+                quantity,
+                description,
+                type,
+                unit_price: unitPrice,
+            }),
+        });
+
+        if (!response.ok)
+            throw new Error(AppMessage.ERROR_CREATE_RECORD);
+
+        return response.json();
     }
-
-    if (!this.isValidServiceId(serviceId)) {
-      throw new Error("Invalid Service ID");
-    }
-
-    const unitPrice = ourServices[serviceId].unit_price;
-
-    const response = await fetch(`${this.billingApiUrl}/billing/record`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": this.billingApiKey,
-      },
-      body: JSON.stringify({
-        user_id: validatedUserId,
-        service_id: serviceId,
-        quantity,
-        description,
-        type,
-        unit_price: unitPrice,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to add record");
-    }
-
-    return response.json();
-  }
 }
 
 export default Billing;
