@@ -129,7 +129,7 @@ export class Billing {
 
         /**Get user balance from billing*/
         const response = await fetch(
-            `${this.billingApiUrl}${Endpoint.BALANCE.replace(":userId", userId)}`,
+            `${this.billingApiUrl}${Endpoint.BALANCE.replace(":user_id", userId)}`,
             {
                 method: "GET",
                 headers: {

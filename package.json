@@ -1,6 +1,6 @@
 {
   "name": "@betatel/utils",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "An Utils library for Betatel services",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
