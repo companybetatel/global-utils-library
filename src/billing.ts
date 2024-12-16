@@ -75,8 +75,8 @@ export class Billing {
         });
 
         if (!response.ok){
-            let data =  await response.json();
-            throw new Error(data.error || AppMessage.ERROR_GET_API_KEY);
+            let error =  await response.json();
+            throw new Error(error.error || AppMessage.ERROR_GET_API_KEY);
         }
 
         return response.json() as Promise<ResponseApiKey>;
@@ -96,7 +96,7 @@ export class Billing {
         /**Get unit price from billing*/
         const queryParams = callee ? `?${new URLSearchParams({callee})}` : '';
         const response = await fetch(
-            `${this.billingApiUrl}${Endpoint.BALANCE.replace(":service_id", serviceId)}${queryParams}`,
+            `${this.billingApiUrl}${Endpoint.UNIT_PRICE.replace(":service_id", serviceId)}${queryParams}`,
             {
                 method: "GET",
                 headers: {
@@ -107,8 +107,8 @@ export class Billing {
         );
 
         if (!response.ok){
-            let data =  await response.json();
-            throw new Error(data.error || AppMessage.ERROR_GET_UNIT_PRICE);
+            let error =  await response.json();
+            throw new Error(error.error || error.message || AppMessage.ERROR_GET_UNIT_PRICE);
         }
 
         return await response.json();
@@ -138,8 +138,8 @@ export class Billing {
         );
 
         if (!response.ok){
-            let data =  await response.json();
-            throw new Error(data.error || AppMessage.ERROR_GET_USER_BALANCE);
+            let error =  await response.json();
+            throw new Error(error.error || error.message || AppMessage.ERROR_GET_USER_BALANCE);
         }
 
         const data = await response.json() as ResponseBalance;
